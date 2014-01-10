@@ -7,6 +7,9 @@ package vision;
 import java.awt.*; 
 import java.awt.image.BufferedImage;  
 import java.awt.image.DataBufferByte;  
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.*;  
 import org.opencv.core.Core;  
 import org.opencv.core.Mat;  
@@ -55,11 +58,35 @@ import org.opencv.objdetect.CascadeClassifier;
       public Mat detect(Mat inputframe){ 
            Mat mRgba=new Mat();  
            Mat mHSV=new Mat();  
+           Mat green = new Mat();
+           Mat red = new Mat();
+           Mat red1 = new Mat();
+           Mat thresholded = new Mat();
+           Mat circles = new Mat();
            inputframe.copyTo(mRgba);  
            inputframe.copyTo(mHSV);  
-           Imgproc.cvtColor( mRgba, mHSV, Imgproc.COLOR_BGR2HSV);  
-          // Imgproc.equalizeHist( mHSV, mHSV );  
-           return mRgba;  
+           Imgproc.cvtColor( mRgba, mHSV, Imgproc.COLOR_BGR2HSV); 
+           List<Mat> lhsv = new ArrayList<Mat>(3);  
+           Core.split(mHSV, lhsv);
+           Core.inRange(mHSV, new Scalar(38, 50, 0), new Scalar(198, 255, 255), green);
+           Core.inRange(mHSV, new Scalar(0, 50, 50), new Scalar(6, 255, 255), red);
+           Core.inRange(mHSV, new Scalar(175, 50, 50), new Scalar(179, 255, 255), red1);
+           Core.bitwise_or(red, red1, thresholded);
+          // Core.bitwise_and(red, green, thresholded);
+          // Imgproc.blur(thresholded, thresholded, new Size(9,9));
+           Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 500, 50, 0, 0);
+           int rows = circles.rows();
+           int elemSize = (int)circles.elemSize();
+           float[] data = new float[rows * elemSize/4];
+           if (data.length>0){
+        	   System.out.println("Detected circles");
+        	   circles.get(0, 0, data);
+        	   for(int i=0; i<data.length; i=i+3){
+        		   Point center = new Point(data[i], data[i+1]);
+        		   Core.ellipse(thresholded, center, new Size((double)data[i+2], (double)data[i+2]), 0, 0, 260, new Scalar(255, 0, 255), 4, 8, 0);
+        	   }
+           }
+           return thresholded;  
       }  
  }  
  public class BlobDetect {  
