@@ -12,15 +12,14 @@ import java.util.List;
 
 import javax.swing.*;  
 import org.opencv.core.Core;  
-import org.opencv.core.Mat;  
-import org.opencv.core.MatOfRect;  
-import org.opencv.core.Point;  
-import org.opencv.core.Rect;  
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;   
+import org.opencv.core.Point;   
 import org.opencv.core.Scalar;  
 import org.opencv.core.Size;  
 import org.opencv.highgui.VideoCapture;  
 import org.opencv.imgproc.Imgproc;  
-import org.opencv.objdetect.CascadeClassifier;  
+
  class My_Panel extends JPanel{  
       private static final long serialVersionUID = 1L;  
       private BufferedImage image;  
@@ -39,8 +38,13 @@ import org.opencv.objdetect.CascadeClassifier;
            int width = matBGR.width(), height = matBGR.height(), channels = matBGR.channels() ;  
            byte[] sourcePixels = new byte[width * height * channels];  
            matBGR.get(0, 0, sourcePixels);  
-           // create new image and get reference to backing data  
-           image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);  
+           // create new image and get reference to backing data 
+           if(matBGR.type() == BufferedImage.TYPE_3BYTE_BGR){
+        	   image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);  
+           }
+           else {
+        	   image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+           }
            final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();  
            System.arraycopy(sourcePixels, 0, targetPixels, 0, sourcePixels.length);  
            long endTime = System.nanoTime();  
@@ -50,8 +54,7 @@ import org.opencv.objdetect.CascadeClassifier;
       public void paintComponent(Graphics g){  
            super.paintComponent(g);   
            if (this.image==null) return;  
-            g.drawImage(this.image,10,10,this.image.getWidth(),this.image.getHeight(), null);  
-           //g.drawString("This is my custom Panel!",10,20);  
+            g.drawImage(this.image,10,10,this.image.getWidth(),this.image.getHeight(), null);   
       }  
  }  
  class processor {  
@@ -59,12 +62,13 @@ import org.opencv.objdetect.CascadeClassifier;
            Mat mRgba=new Mat();  
            Mat mHSV=new Mat();  
            Mat green = new Mat();
-           Mat red = new Mat();
            Mat red1 = new Mat();
            Mat thresholded = new Mat();
            Mat circles = new Mat();
            inputframe.copyTo(mRgba);  
-           inputframe.copyTo(mHSV);  
+           inputframe.copyTo(mHSV);
+           Mat red = new Mat(mHSV.height(), mHSV.width(), CvType.CV_8UC1);
+           inputframe.copyTo(red);
            Imgproc.cvtColor( mRgba, mHSV, Imgproc.COLOR_BGR2HSV); 
            List<Mat> lhsv = new ArrayList<Mat>(3);  
            Core.split(mHSV, lhsv);
@@ -72,8 +76,8 @@ import org.opencv.objdetect.CascadeClassifier;
            Core.inRange(mHSV, new Scalar(0, 50, 50), new Scalar(6, 255, 255), red);
            Core.inRange(mHSV, new Scalar(175, 50, 50), new Scalar(179, 255, 255), red1);
            Core.bitwise_or(red, red1, thresholded);
-          // Core.bitwise_and(red, green, thresholded);
-          // Imgproc.blur(thresholded, thresholded, new Size(9,9));
+          // Core.bitwise_or(red, green, thresholded);
+           Imgproc.blur(thresholded, thresholded, new Size(9,9));
            Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 500, 50, 0, 0);
            int rows = circles.rows();
            int elemSize = (int)circles.elemSize();
@@ -93,8 +97,8 @@ import org.opencv.objdetect.CascadeClassifier;
       public static void main(String arg[]){  
        // Load the native library.    
     System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-       String window_name = "Capture - Blob detection";  
-       JFrame frame = new JFrame(window_name);  
+    String window_name = "Capture - Blob detection";  
+    JFrame frame = new JFrame(window_name);  
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
     frame.setSize(400,400);  
     processor my_processor=new processor();  
