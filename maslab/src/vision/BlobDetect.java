@@ -12,7 +12,6 @@ import java.util.List;
 
 import javax.swing.*;  
 import org.opencv.core.Core;  
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;   
 import org.opencv.core.Point;   
 import org.opencv.core.Scalar;  
@@ -39,7 +38,7 @@ import org.opencv.imgproc.Imgproc;
            byte[] sourcePixels = new byte[width * height * channels];  
            matBGR.get(0, 0, sourcePixels);  
            // create new image and get reference to backing data 
-           if(matBGR.type() == BufferedImage.TYPE_3BYTE_BGR){
+           if(matBGR.type() == 16){
         	   image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);  
            }
            else {
@@ -48,7 +47,7 @@ import org.opencv.imgproc.Imgproc;
            final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();  
            System.arraycopy(sourcePixels, 0, targetPixels, 0, sourcePixels.length);  
            long endTime = System.nanoTime();  
-           System.out.println(String.format("Elapsed time: %.2f ms", (float)(endTime - startTime)/1000000));  
+          // System.out.println(String.format("Elapsed time: %.2f ms", (float)(endTime - startTime)/1000000));  
            return true;  
       }  
       public void paintComponent(Graphics g){  
@@ -59,26 +58,35 @@ import org.opencv.imgproc.Imgproc;
  }  
  class processor {  
       public Mat detect(Mat inputframe){ 
+    	  // Initialize things yaaay!
            Mat mRgba=new Mat();  
            Mat mHSV=new Mat();  
            Mat green = new Mat();
+           Mat red = new Mat();
            Mat red1 = new Mat();
            Mat thresholded = new Mat();
            Mat circles = new Mat();
            inputframe.copyTo(mRgba);  
            inputframe.copyTo(mHSV);
-           Mat red = new Mat(mHSV.height(), mHSV.width(), CvType.CV_8UC1);
            inputframe.copyTo(red);
+           // Convert to HSV
            Imgproc.cvtColor( mRgba, mHSV, Imgproc.COLOR_BGR2HSV); 
            List<Mat> lhsv = new ArrayList<Mat>(3);  
+           // Split into channels
            Core.split(mHSV, lhsv);
-           Core.inRange(mHSV, new Scalar(38, 50, 0), new Scalar(198, 255, 255), green);
-           Core.inRange(mHSV, new Scalar(0, 50, 50), new Scalar(6, 255, 255), red);
-           Core.inRange(mHSV, new Scalar(175, 50, 50), new Scalar(179, 255, 255), red1);
+           // Threshold over green and red (red wraps around)
+           Core.inRange(mHSV, new Scalar(38, 80, 0), new Scalar(75, 198, 255), green); 
+           Core.inRange(mHSV, new Scalar(0, 50, 50), new Scalar(10, 255, 255), red);
+           Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
+           // Compound thresholded image
            Core.bitwise_or(red, red1, thresholded);
-          // Core.bitwise_or(red, green, thresholded);
+           Core.bitwise_or(red, green, thresholded);
+           //Blur to reduce noise
            Imgproc.blur(thresholded, thresholded, new Size(9,9));
-           Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 500, 50, 0, 0);
+           //Imgproc.findContours(circles, thresholded, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+           //Detect circles
+           Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 200, 75, 0, 0);
+           // Draw circles on image
            int rows = circles.rows();
            int elemSize = (int)circles.elemSize();
            float[] data = new float[rows * elemSize/4];
@@ -87,10 +95,11 @@ import org.opencv.imgproc.Imgproc;
         	   circles.get(0, 0, data);
         	   for(int i=0; i<data.length; i=i+3){
         		   Point center = new Point(data[i], data[i+1]);
-        		   Core.ellipse(thresholded, center, new Size((double)data[i+2], (double)data[i+2]), 0, 0, 260, new Scalar(255, 0, 255), 4, 8, 0);
+                   System.out.println(center);
+        		   Core.ellipse(mRgba, center, new Size((double)data[i+2], (double)data[i+2]), 0, 0, 360, new Scalar(255, 0, 255), 4, 8, 0);
         	   }
            }
-           return thresholded;  
+           return mRgba; 
       }  
  }  
  public class BlobDetect {  
