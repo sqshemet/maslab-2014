@@ -21,7 +21,7 @@ public class FaceDetect {
 
     private static CascadeClassifier face_cascade;
     private static CascadeClassifier eyes_cascade;
-    private static String window_name = "Capture - Face detection";
+    private static String window_name = "Capture - Face detection.jpg";
 
     public FaceDetect(){
         face_cascade = new CascadeClassifier("~/projects/RobotX/opencv-2.4.8/data/haarcascades/haarcascade_frontalface_alt.xml"); 

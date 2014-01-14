@@ -61,7 +61,7 @@ public class Main {
                         // Process the image however you like
                         processor.process(rawImage, processedImage);
                         
-                        // Update the GUI windows
+                        // Update the GU I windows
                         updateWindow(cameraPane, rawImage, rawImageConverter);
                         updateWindow(opencvPane, processedImage, processedImageConverter);
                         

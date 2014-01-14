@@ -24,19 +24,13 @@ public class FaceDetect3 {
     /** Global variables */
 	private static String face_cascade_name = "haarcascade_frontalface_alt.xml";
     private static String eyes_cascade_name = "haarcascade_eye_tree_eyeglasses.xml";
-    private static CascadeClassifier face_cascade;
-    private static CascadeClassifier eyes_cascade;
+    private static CascadeClassifier face_cascade = new CascadeClassifier();
+    private static CascadeClassifier eyes_cascade = new CascadeClassifier();
     private static String window_name = "Capture - Face detection";
 
-    public FaceDetect3(){
-	 face_cascade = new CascadeClassifier("~/projects/RobotX/opencv-2.4.8/data/haarcascades/haarcascade_frontalface_alt.xml"); 
-        eyes_cascade = new CascadeClassifier("~/projects/RobotX/opencv-2.4.8/data/haarcascades/"+eyes_cascade_name);
-    }
 
      public static void detectAndDisplay(Mat frame)
      {
-       CascadeClassifier face_cascade= new CascadeClassifier("~/projects/RobotX/opencv-2.4.8/data/haarcascades/haarcascade_frontalface_alt.xml");
-	 
        Mat frame_gray = new Mat();
        MatOfRect faces = new MatOfRect();
 
@@ -69,7 +63,7 @@ public class FaceDetect3 {
          }
        }
        //-- Show what you got
-
+       Highgui.imwrite(window_name, frame);
      }
 
     /**
@@ -83,7 +77,7 @@ public class FaceDetect3 {
        Mat frame = new Mat();
 
        //-- 1. Load the cascades
-       /*if (!face_cascade.load(face_cascade_name))
+       if (!face_cascade.load(face_cascade_name))
        {
            System.out.print("--(!)Error loading\n");
            return;
@@ -92,7 +86,7 @@ public class FaceDetect3 {
        {
            System.out.print("--(!)Error loading\n");
            return;
-       }*/
+       }
 
        //-- 2. Read the video stream
        capture = new VideoCapture(0);

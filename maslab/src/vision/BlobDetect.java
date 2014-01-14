@@ -80,12 +80,12 @@ import org.opencv.imgproc.Imgproc;
            Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
            // Compound thresholded image
            Core.bitwise_or(red, red1, thresholded);
-           Core.bitwise_or(red, green, thresholded);
+          // Core.bitwise_or(red, green, thresholded);
            //Blur to reduce noise
            Imgproc.blur(thresholded, thresholded, new Size(9,9));
            //Imgproc.findContours(circles, thresholded, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
            //Detect circles
-           Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 200, 75, 0, 0);
+           Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 200, 100, 0, 0);
            // Draw circles on image
            int rows = circles.rows();
            int elemSize = (int)circles.elemSize();
@@ -96,10 +96,10 @@ import org.opencv.imgproc.Imgproc;
         	   for(int i=0; i<data.length; i=i+3){
         		   Point center = new Point(data[i], data[i+1]);
                    System.out.println(center);
-        		   Core.ellipse(mRgba, center, new Size((double)data[i+2], (double)data[i+2]), 0, 0, 360, new Scalar(255, 0, 255), 4, 8, 0);
+        		   Core.ellipse(thresholded, center, new Size((double)data[i+2], (double)data[i+2]), 0, 0, 360, new Scalar(255, 0, 255), 4, 8, 0);
         	   }
            }
-           return mRgba; 
+           return thresholded; 
       }  
  }  
  public class BlobDetect {  

@@ -1,23 +1,23 @@
 package demos; 
 /*  
-  * Captures the camera stream with OpenCV  
+  * Captures the camera stream with OpenCV 
   * Search for the faces  
   * Display a circle around the faces using Java
   */  
- import java.awt.*;  
- import java.awt.image.BufferedImage;  
- import java.awt.image.DataBufferByte;  
- import javax.swing.*;  
- import org.opencv.core.Core;  
- import org.opencv.core.Mat;  
- import org.opencv.core.MatOfRect;  
- import org.opencv.core.Point;  
- import org.opencv.core.Rect;  
- import org.opencv.core.Scalar;  
- import org.opencv.core.Size;  
- import org.opencv.highgui.VideoCapture;  
- import org.opencv.imgproc.Imgproc;  
- import org.opencv.objdetect.CascadeClassifier;  
+ import java.awt.*; 
+import java.awt.image.BufferedImage;  
+import java.awt.image.DataBufferByte;  
+import javax.swing.*;  
+import org.opencv.core.Core;  
+import org.opencv.core.Mat;  
+import org.opencv.core.MatOfRect;  
+import org.opencv.core.Point;  
+import org.opencv.core.Rect;  
+import org.opencv.core.Scalar;  
+import org.opencv.core.Size;  
+import org.opencv.highgui.VideoCapture;  
+import org.opencv.imgproc.Imgproc;  
+import org.opencv.objdetect.CascadeClassifier;  
  class My_Panel extends JPanel{  
       private static final long serialVersionUID = 1L;  
       private BufferedImage image;  
@@ -55,7 +55,7 @@ package demos;
       private CascadeClassifier face_cascade;  
       // Create a constructor method  
       public processor(){  
-           face_cascade=new CascadeClassifier("~/projects/RobotX/opencv-2.4.8/data/haarcascades/haarcascade_frontalface_alt.xml");  
+           face_cascade=new CascadeClassifier("/home/sqshemet/projects/maslab/data/haarcascade.xml");  
            if(face_cascade.empty())  
            {  
                 System.out.println("--(!)Error loading A\n");  
@@ -66,7 +66,7 @@ package demos;
                       System.out.println("Face classifier loooaaaaaded up");  
            }  
       }  
-      public Mat detect(Mat inputframe){  
+      public Mat detect(Mat inputframe){ 
            Mat mRgba=new Mat();  
            Mat mGrey=new Mat();  
            MatOfRect faces = new MatOfRect();  
@@ -87,6 +87,7 @@ package demos;
  public class FaceDetect2 {  
       public static void main(String arg[]){  
        // Load the native library.    
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
        String window_name = "Capture - Face detection";  
        JFrame frame = new JFrame(window_name);  
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
@@ -97,7 +98,7 @@ package demos;
     frame.setVisible(true);        
        //-- 2. Read the video stream  
         Mat webcam_image=new Mat();  
-        VideoCapture capture =new VideoCapture(0);   
+        VideoCapture capture =new VideoCapture(1);   
     if( capture.isOpened())  
            {  
             while( true )  
