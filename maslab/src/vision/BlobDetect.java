@@ -79,19 +79,19 @@ import org.opencv.imgproc.Imgproc;
            // Split into channels
            Core.split(mHSV, lhsv);
            // Threshold over green and red (red wraps around)
-           Core.inRange(mHSV, new Scalar(38, 80, 0), new Scalar(75, 198, 255), green); 
-           Core.inRange(mHSV, new Scalar(0, 50, 50), new Scalar(10, 255, 255), red);
-           Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
+           Core.inRange(mHSV, new Scalar(50, 60, 40), new Scalar(90, 110, 160), green); 
+           Core.inRange(mHSV, new Scalar(0, 140, 95), new Scalar(10, 250, 210), red);
+           //Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
            // Compound thresholded image
-           Core.bitwise_or(red, red1, thresholded);
+          // Core.bitwise_or(red, red1, thresholded);
            Core.bitwise_or(red, green, thresholded);
            //Blur to reduce noise
            Mat blurred = new Mat();
            Imgproc.blur(thresholded, blurred, new Size(9,9));
            //Imgproc.drawContours(thresholded, contours, 1, new Scalar(0,0,255));
            //Filter small blobs
-           Imgproc.erode(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2)));       
-           Imgproc.dilate(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2)));
+           Imgproc.erode(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10)));       
+           Imgproc.dilate(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10, 10)));
            //Find contours
            Imgproc.findContours(blurred, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
            //Find and draw bounding boxes and circles
@@ -112,9 +112,9 @@ import org.opencv.imgproc.Imgproc;
         	   centers.add(i, center);
         	   //System.out.println(Imgproc.contourArea(contours.get(i)));
         	   if (Imgproc.contourArea(contours.get(i)) > 50){
-        		   System.out.println("Found big contour");
         		   Rect rect = Imgproc.boundingRect(contours.get(i));
         		   if (rect.height > 28){
+        			   System.out.println(centers.get(i));
         			   Core.circle(mRgba, centers.get(i), radius, new Scalar(0,0,255), 0);
         			   Core.rectangle(mRgba, new Point(rect.x, rect.y), new Point(rect.x+rect.width, rect.y+rect.height), new Scalar(0, 0, 255));
         		   }
