@@ -12,8 +12,12 @@ import java.util.List;
 
 import javax.swing.*;  
 import org.opencv.core.Core;  
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;   
-import org.opencv.core.Point;   
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.*;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;  
 import org.opencv.core.Size;  
 import org.opencv.highgui.VideoCapture;  
@@ -65,7 +69,7 @@ import org.opencv.imgproc.Imgproc;
            Mat red = new Mat();
            Mat red1 = new Mat();
            Mat thresholded = new Mat();
-           Mat circles = new Mat();
+           List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
            inputframe.copyTo(mRgba);  
            inputframe.copyTo(mHSV);
            inputframe.copyTo(red);
@@ -80,14 +84,46 @@ import org.opencv.imgproc.Imgproc;
            Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
            // Compound thresholded image
            Core.bitwise_or(red, red1, thresholded);
-          // Core.bitwise_or(red, green, thresholded);
+           Core.bitwise_or(red, green, thresholded);
            //Blur to reduce noise
-           Imgproc.blur(thresholded, thresholded, new Size(9,9));
-           //Imgproc.findContours(circles, thresholded, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+           Mat blurred = new Mat();
+           Imgproc.blur(thresholded, blurred, new Size(9,9));
+           //Imgproc.drawContours(thresholded, contours, 1, new Scalar(0,0,255));
+           //Filter small blobs
+           Imgproc.erode(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2)));       
+           Imgproc.dilate(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2)));
+           //Find contours
+           Imgproc.findContours(blurred, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+           //Find and draw bounding boxes and circles
+           List<MatOfPoint2f> curves = new ArrayList<MatOfPoint2f>(contours.size());
+           float[] radii = new float[contours.size()];
+           List<Point> centers = new ArrayList<Point>(contours.size());
+           for(int i=0; i<contours.size(); i++){
+        	   MatOfPoint2f mMOP2f1 = new MatOfPoint2f();
+        	   MatOfPoint2f mMOP2f2 = new MatOfPoint2f();
+        	   contours.get(i).convertTo(mMOP2f1, CvType.CV_32FC2);
+        	   Imgproc.approxPolyDP(mMOP2f1, mMOP2f2, 3.0, true);
+        	   curves.add(i, mMOP2f2);
+        	   Point center = new Point();
+        	   //I don't understand why the fuck radii is a float[], but it is. All we care about
+        	   // is the first element.
+        	   Imgproc.minEnclosingCircle(curves.get(i), center, radii);
+        	   int radius = (int)radii[0];
+        	   centers.add(i, center);
+        	   //System.out.println(Imgproc.contourArea(contours.get(i)));
+        	   if (Imgproc.contourArea(contours.get(i)) > 50){
+        		   System.out.println("Found big contour");
+        		   Rect rect = Imgproc.boundingRect(contours.get(i));
+        		   if (rect.height > 28){
+        			   Core.circle(mRgba, centers.get(i), radius, new Scalar(0,0,255), 0);
+        			   Core.rectangle(mRgba, new Point(rect.x, rect.y), new Point(rect.x+rect.width, rect.y+rect.height), new Scalar(0, 0, 255));
+        		   }
+        	   }
+           }
            //Detect circles
-           Imgproc.HoughCircles(thresholded, circles, Imgproc.CV_HOUGH_GRADIENT, 2, thresholded.height()/4, 200, 100, 0, 0);
+
            // Draw circles on image
-           int rows = circles.rows();
+           /*int rows = circles.rows();
            int elemSize = (int)circles.elemSize();
            float[] data = new float[rows * elemSize/4];
            if (data.length>0){
@@ -98,9 +134,10 @@ import org.opencv.imgproc.Imgproc;
                    System.out.println(center);
         		   Core.ellipse(thresholded, center, new Size((double)data[i+2], (double)data[i+2]), 0, 0, 360, new Scalar(255, 0, 255), 4, 8, 0);
         	   }
-           }
-           return thresholded; 
+           }*/
+           return mRgba; 
       }  
+
  }  
  public class BlobDetect {  
       public static void main(String arg[]){  
