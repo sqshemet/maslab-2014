@@ -67,5 +67,10 @@ public class Encoder extends Sensor {
 	public double getAngularSpeed() {
 		return (double) (1000000000.0 * getDeltaAngularDistance() / deltaTime);
 	}
+	
+	public void reset() {
+		ticks = 0;
+		lastUpdateTime = System.nanoTime();
+	}
 
 }
