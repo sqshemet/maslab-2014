@@ -38,7 +38,7 @@ public class Main {
 		Cytron motor2 = new Cytron(6, 7);
 //		Ultrasonic ultra1 = new Ultrasonic(13, 12);
 //		Ultrasonic ultra2 = new Ultrasonic(36, 34);
-//		Gyroscope gyro = new Gyroscope(1, 9);
+		Gyroscope gyro = new Gyroscope(1, 9);
 		Encoder enc1 = new Encoder(2, 3);
 		Encoder enc2 = new Encoder(10,11);
 
@@ -50,7 +50,7 @@ public class Main {
 		comm.registerDevice(motor2);
 //		comm.registerDevice(ultra1);
 //		comm.registerDevice(ultra2);
-//		comm.registerDevice(gyro);
+		comm.registerDevice(gyro);
 		comm.registerDevice(enc1);
 		comm.registerDevice(enc2);
 
@@ -59,7 +59,7 @@ public class Main {
 		comm.initialize();
 		
 		//Initialize motor control class
-		Drive driver = new Drive(comm, motor1, motor2, enc1, enc2);
+		Drive driver = new Drive(comm, motor1, motor2, enc1, enc2, gyro);
 		driver.driveForward(2.0); //drive forward 2 feet
 
 		while (true) {

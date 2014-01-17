@@ -52,8 +52,8 @@ public class Gyroscope extends Sensor {
 		deltaTime = currentTime - lastUpdateTime;
 		if (new_omega != ERROR_CODE) {
 			new_omega =  new_omega * CONVERSION_FACTOR;
-			deltaAngle = (((new_omega - omega)/2.0)*deltaTime)*1000000000.0;
-			angle = (angle+deltaAngle)%(2.0*Math.PI);
+			deltaAngle = ((new_omega + omega)/2.0)*(deltaTime/1000000000.0);
+			angle = (angle+deltaAngle+2.0*Math.PI)%(2.0*Math.PI);
 			omega = new_omega;
 		lastUpdateTime = currentTime;
 		}
@@ -70,7 +70,7 @@ public class Gyroscope extends Sensor {
 	}
 	
 	// in radians
-	public double getAngleChangeSinceLastUpdate() {
+	public double getDeltaAngle() {
 		return deltaAngle;
 	}
 	
