@@ -60,6 +60,7 @@ import org.opencv.imgproc.Imgproc;
  }  
  class processor {  
       public Mat detect(Mat inputframe){ 
+    	  // What do you want to see in the stream?
     	  // Initialize things yaaay!
            Mat mRgba=new Mat(); 
            inputframe.copyTo(mRgba);  
@@ -78,7 +79,11 @@ import org.opencv.imgproc.Imgproc;
         		   }
            }
            return mRgba; 
-      }  
+      }
+      
+      public Mat cropBelowBlue(Mat inputframe){
+    	  return null;
+      }
       public List<MatOfPoint> getContours(Mat inputframe){
     	  // Initialize things yaaay!
           Mat mRgba=new Mat();  
@@ -140,7 +145,7 @@ import org.opencv.imgproc.Imgproc;
  }  
 
  public class BlobDetect { 
-	  public static Mat viewFrame(){
+	  public static void viewStream(){
 		String window_name = "Capture - Blob detection";  
 	    JFrame frame = new JFrame(window_name);  
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
@@ -173,26 +178,51 @@ import org.opencv.imgproc.Imgproc;
 	               }  
 	              }  
 	             }  
-	             return webcam_image;  
+	             return;  
 	  }
       public static void main(String arg[]){  
        // Load the native library.    
     	  System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    	  Mat frame = viewFrame();
-    	 /* processor my_processor=new processor();  
-    	  Mat webcam_image=new Mat();  
-	      VideoCapture capture =new VideoCapture(1); 
-	      if(capture.isOpened())
-	      {
-	    	  capture.read(webcam_image);
-	    	  if(!webcam_image.empty())
-	    	  {
-	    		  webcam_image=my_processor.detect(webcam_image);
-	    	  }
-	      }*/
+    	  viewStream(); //Comment this out if you don't want the stream
+    	  Mat frame = getFrame();
+    	  Map.Entry<Point, Float> ball = getClosestBall(frame);
+    	  double distance = distanceToBall(ball.getValue());
+    	  Point center = ball.getKey();
     
       } 
-      public double distanceToBall(float radius){
+      
+      public static Mat getFrame(){
+    	  Mat webcam_image = new Mat();
+    	  VideoCapture capture = new VideoCapture(1);
+    	  if(capture.isOpened()){
+    		  capture.read(webcam_image);
+    		  return webcam_image;
+    		  }
+    	  else{
+    		  System.out.println("No frame -- Break");
+    		  return null;
+    	  }
+      }
+      
+      public static Map.Entry<Point, Float> getClosestBall(Mat frame){
+    	  //Takes in frame, returns a point with the center and the radius of the largest object
+    	  processor processor = new processor();
+    	  List<MatOfPoint> contours = processor.getContours(frame);
+    	  HashMap<Point, Float> objects = processor.getBlobs(contours);
+    	  float maxRadius = 0;
+    	  Map.Entry<Point, Float> closeCircle = null;
+    	  for (Map.Entry<Point, Float> entry : objects.entrySet())
+    	  {
+    		float radius = entry.getValue();
+    		if (radius > maxRadius){
+    			maxRadius = radius;
+    			closeCircle = entry;
+    		}
+    	  }
+    	  return closeCircle;  
+      }
+
+      public static double distanceToBall(float radius){
     	  //Takes radius in px, returns distance in inches
     	  float focalLength = 350; //This is approximate. Range I got from calculations was like 310-390
     	  double ballRadius = .875;
