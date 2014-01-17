@@ -47,4 +47,11 @@ public class Drive{
 			comm.updateSensorData();
 		}
 	}
+	
+	public void turnToPoint(double angle){
+		/**
+		 * turn given angle in radians
+		 */
+		throw new UnsupportedOperationException();  
+	}
 }

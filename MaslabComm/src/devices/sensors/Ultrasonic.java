@@ -40,9 +40,9 @@ public class Ultrasonic extends Sensor {
 		return 2;
 	}
 	
-	// in meters
+	// in inches
 	public double getDistance() {
-		return distance;
+		return distance*39.37;
 	}
 
 }
