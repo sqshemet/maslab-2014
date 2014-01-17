@@ -12,20 +12,20 @@ public class Drive{
 	Cytron rightMotor;
 	Encoder leftEnc;
 	Encoder rightEnc;
-	Gyroscope gyro;
+	//Gyroscope gyro;
 	//double distP = .8;
 	static final double ANGLE_P = .5;
 	static final double BIAS = .4;
 	static final double TURN_BIAS = .3;
 
 	public Drive(MapleComm mComm, Cytron leftM, Cytron rightM, 
-			Encoder leftE, Encoder rightE, Gyroscope scope){
+			Encoder leftE, Encoder rightE /*Gyroscope scope*/){
 		comm = mComm;
 		leftMotor = leftM;
 		rightMotor = rightM;
 		leftEnc = leftE;
 		rightEnc = rightE;
-		gyro = scope;
+		//gyro = scope;
 	}
 
 	public void driveForward(Double distance){
@@ -70,7 +70,7 @@ public class Drive{
 				rightMotor.setSpeed(diff*TURN_BIAS);
 			} 
 			comm.updateSensorData();
-			currentAngle += gyro.getDeltaAngle();
+			//currentAngle += gyro.getDeltaAngle();
 			diff = angle-currentAngle;
 		}
 	}
