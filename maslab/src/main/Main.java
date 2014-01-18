@@ -39,8 +39,8 @@ public class Main {
 //		Ultrasonic ultra1 = new Ultrasonic(13, 12);
 //		Ultrasonic ultra2 = new Ultrasonic(36, 34);
 //		Gyroscope gyro = new Gyroscope(1, 9);
-		Encoder enc1 = new Encoder(2, 3);
-		Encoder enc2 = new Encoder(10,11);
+		Encoder enc1 = new Encoder(29, 30);
+		Encoder enc2 = new Encoder(31, 32);
 
 		/*
 		 * Build up a list of devices that will be sent to the Maple for the
