@@ -18,6 +18,7 @@ import javax.swing.text.html.HTMLDocument.Iterator;
 
 import org.opencv.core.Point;
 import org.opencv.core.*;
+import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;  
 import org.opencv.imgproc.Imgproc;  
 
@@ -86,6 +87,7 @@ import org.opencv.imgproc.Imgproc;
       }
       public List<MatOfPoint> getContours(Mat inputframe){
     	  // Initialize things yaaay!
+    	  inputframe = cropBlue(inputframe);
           Mat mRgba=new Mat();  
           Mat mHSV=new Mat();  
           Mat green = new Mat();
@@ -98,9 +100,9 @@ import org.opencv.imgproc.Imgproc;
           inputframe.copyTo(red);
           // Convert to HSV
           Imgproc.cvtColor( mRgba, mHSV, Imgproc.COLOR_BGR2HSV); 
-          List<Mat> lhsv = new ArrayList<Mat>(3);  
+          //List<Mat> lhsv = new ArrayList<Mat>(3);  
           // Split into channels
-          Core.split(mHSV, lhsv);
+          //Core.split(mHSV, lhsv);
           // Threshold over green and red (red wraps around)
           Core.inRange(mHSV, new Scalar(50, 60, 40), new Scalar(90, 110, 160), green); 
           Core.inRange(mHSV, new Scalar(0, 140, 95), new Scalar(10, 250, 210), thresholded);
@@ -132,7 +134,7 @@ import org.opencv.imgproc.Imgproc;
        	   Imgproc.approxPolyDP(mMOP2f1, mMOP2f2, 3.0, true);
        	   curves.add(i, mMOP2f2);
        	   Point center = new Point();
-       	   //I don't understand why the fuck radii is a float[], but it is. All we care about
+       	   //I don't understand why the * radii is a float[], but it is. All we care about
        	   // is the first element.
        	   Imgproc.minEnclosingCircle(curves.get(i), center, radius);
        	   System.out.print(center);
@@ -141,11 +143,63 @@ import org.opencv.imgproc.Imgproc;
        	   	}
           return objects;
           }
+      
+      public Mat cropBlue(Mat inputframe){
+    	  Mat mRgba = new Mat();
+    	  Mat mHSV = new Mat();
+    	  Mat noBlue = new Mat();
+    	  List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+    	  Mat thresholded = new Mat();
+    	  inputframe.copyTo(mRgba);
+    	  inputframe.copyTo(mHSV);
+    	  inputframe.copyTo(noBlue);
+    	  Imgproc.cvtColor(mRgba, mHSV, Imgproc.COLOR_BGR2HSV);
+    	  Core.inRange(mHSV,new Scalar(100, 160, 100), new Scalar(110, 220, 130), thresholded);
+          //Core.inRange(mHSV, new Scalar(0, 140, 95), new Scalar(10, 250, 210), thresholded);
+          Mat blurred = new Mat();
+          Imgproc.blur(thresholded, blurred, new Size(9,9));
+          //Filter small blobs
+          Imgproc.erode(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10)));       
+          Imgproc.dilate(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10, 10)));
+          Imgproc.findContours(blurred, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+         // Imgproc.drawContours(blurred, contours, 1, new Scalar(0,0,255));
+          double maxContourArea = 0;
+          int maxAreaIdx = 0;
+          MatOfPoint maxContour = new MatOfPoint();
+          for (int idx = 0; idx < contours.size(); idx++) 
+          {
+                MatOfPoint contour = contours.get(idx);
+                double contourarea = Imgproc.contourArea(contour);
+                if (contourarea > maxContourArea) 
+                {
+                         maxContour = contour;
+                         maxContourArea = contourarea;
+                         maxAreaIdx = idx;
+                }
+          }
+
+          Point[] points_contour = maxContour.toArray();
+          int nbPoints = points_contour.length; 
+          Point minPoint = new Point(0, mRgba.height());
+          for(int i=0; i< nbPoints;i++)
+          {
+                  if (points_contour[i].y < minPoint.y){
+                	  minPoint = points_contour[i];
+                  }
+                  
+          }
+          noBlue = mRgba.submat(new Rect(0, (int)minPoint.y, 640,(int)(mRgba.height()-minPoint.y)));
+          return noBlue;
+    	  
+          
+    	  
+      }
 
  }  
 
  public class BlobDetect { 
 	  public static void viewStream(){
+		// Mat image = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
 		String window_name = "Capture - Blob detection";  
 	    JFrame frame = new JFrame(window_name);  
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
@@ -156,7 +210,11 @@ import org.opencv.imgproc.Imgproc;
 	    frame.setVisible(true);        
 	       //-- 2. Read the video stream  
 	        Mat webcam_image=new Mat();  
-	        VideoCapture capture =new VideoCapture(1);   
+	        VideoCapture capture =new VideoCapture(1);  
+	    //frame.setSize(image.width()+40, image.height()+60);
+	    //Mat no_blue = my_processor.cropBlue(image);
+	    //my_panel.MatToBufferedImage(no_blue);
+	    //my_panel.repaint();
 	    if( capture.isOpened())  
 	           {  
 	            while( true )  
@@ -184,14 +242,17 @@ import org.opencv.imgproc.Imgproc;
        // Load the native library.    
     	  System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     	  viewStream(); //Comment this out if you don't want the stream
-    	  Mat frame = getFrame();
+    	  //Mat frame = getFrame();
+    	  Mat frame = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
     	  Map.Entry<Point, Float> ball = getClosestBall(frame);
     	  double distance = distanceToBall(ball.getValue());
     	  Point center = ball.getKey();
+    	  int orientation = orientation(center);
     
       } 
       
       public static Mat getFrame(){
+    	  //Get next camera frame
     	  Mat webcam_image = new Mat();
     	  VideoCapture capture = new VideoCapture(1);
     	  if(capture.isOpened()){
@@ -207,7 +268,8 @@ import org.opencv.imgproc.Imgproc;
       public static Map.Entry<Point, Float> getClosestBall(Mat frame){
     	  //Takes in frame, returns a point with the center and the radius of the largest object
     	  processor processor = new processor();
-    	  List<MatOfPoint> contours = processor.getContours(frame);
+    	  Mat cropped = processor.cropBlue(frame);
+    	  List<MatOfPoint> contours = processor.getContours(cropped);
     	  HashMap<Point, Float> objects = processor.getBlobs(contours);
     	  float maxRadius = 0;
     	  Map.Entry<Point, Float> closeCircle = null;
@@ -228,5 +290,20 @@ import org.opencv.imgproc.Imgproc;
     	  double ballRadius = .875;
     	  return ballRadius*focalLength/radius;
     	  
+      }
+      
+      public static int orientation(Point center){
+    	  //Takes in center of ball, returns 0 if approximately the center of view
+    	  // -1 if left, 1 if right, 2 if error.
+    	  if (center.x > 240 && center.x < 400){
+    		  return 0;
+    	  }
+    	  else if (center.x < 240){
+    		  return -1;
+    	  }
+    	  else if (center.x > 400){
+    		  return 1;
+    	  }
+    	  return -2;
       }
  }  
