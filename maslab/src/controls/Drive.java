@@ -4,6 +4,7 @@ import comm.MapleComm;
 
 import devices.actuators.Cytron;
 import devices.sensors.Encoder;
+import devices.sensors.Gyroscope;
 
 public class Drive{
 	MapleComm comm;
@@ -11,18 +12,22 @@ public class Drive{
 	Cytron rightMotor;
 	Encoder leftEnc;
 	Encoder rightEnc;
+	//Gyroscope gyro;
 	//double distP = .8;
-	double angleP = .5;
-	double bias = .4;
+	static final double ANGLE_P = .5;
+	static final double BIAS = .4;
+	static final double TURN_BIAS = .3;
 
-	public Drive(MapleComm mComm, Cytron leftM, Cytron rightM, Encoder leftE, Encoder rightE){
+	public Drive(MapleComm mComm, Cytron leftM, Cytron rightM, 
+			Encoder leftE, Encoder rightE /*Gyroscope scope*/){
 		comm = mComm;
 		leftMotor = leftM;
 		rightMotor = rightM;
 		leftEnc = leftE;
 		rightEnc = rightE;
+		//gyro = scope;
 	}
-	
+
 	public void driveForward(Double distance){
 		/**
 		 * drive forward given distance in inches
@@ -36,15 +41,37 @@ public class Drive{
 			double rightDist = rightEnc.getDeltaAngularDistance()*.323;
 			double leftDist = leftEnc.getDeltaAngularDistance()*.323;
 			double angleDiff = (rightDist - leftDist);
-			double power = angleP*angleDiff;
+			double power = ANGLE_P*angleDiff;
 			if (remaining > 1.0){
-				leftMotor.setSpeed(bias + power);
-				rightMotor.setSpeed(bias - power);
+				leftMotor.setSpeed(BIAS + power);
+				rightMotor.setSpeed(BIAS - power);
 			} else {
-				leftMotor.setSpeed(bias*remaining + power);
-				rightMotor.setSpeed(bias*remaining - power);
-			} totalDist += (rightDist+leftDist)/2.0;
+				leftMotor.setSpeed(BIAS*remaining + power);
+				rightMotor.setSpeed(BIAS*remaining - power);
+			} 
+			totalDist += (rightDist+leftDist)/2.0;
 			comm.updateSensorData();
+		}
+	}
+	
+	public void turnToPoint(double angle){
+		/**
+		 * turn given angle in radians
+		 */
+		double currentAngle = 0;
+		angle = angle-Math.PI;
+		double diff = angle-currentAngle;
+		while (Math.abs(diff)>.1){
+			if (Math.abs(diff) > .5){
+				leftMotor.setSpeed(-1*Math.signum(diff)*TURN_BIAS);
+				rightMotor.setSpeed(Math.signum(diff)*TURN_BIAS);
+			} else {
+				leftMotor.setSpeed(-1*diff*TURN_BIAS);
+				rightMotor.setSpeed(diff*TURN_BIAS);
+			} 
+			comm.updateSensorData();
+			//currentAngle += gyro.getDeltaAngle();
+			diff = angle-currentAngle;
 		}
 	}
 }
