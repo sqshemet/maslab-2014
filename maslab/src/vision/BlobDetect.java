@@ -99,6 +99,9 @@ import org.opencv.imgproc.Imgproc;
           inputframe.copyTo(mHSV);
           inputframe.copyTo(red);
           // Convert to HSV
+          if (inputframe.empty()){
+        	  System.out.println("I suck");
+          }
           Imgproc.cvtColor( mRgba, mHSV, Imgproc.COLOR_BGR2HSV); 
           //List<Mat> lhsv = new ArrayList<Mat>(3);  
           // Split into channels
@@ -188,8 +191,12 @@ import org.opencv.imgproc.Imgproc;
                   }
                   
           }
-          noBlue = mRgba.submat(new Rect(0, (int)minPoint.y, 640,(int)(mRgba.height()-minPoint.y)));
-          return noBlue;
+          if (minPoint.y<mRgba.height()){
+              noBlue = mRgba.submat(new Rect(0, (int)minPoint.y, 640,(int)(mRgba.height()-minPoint.y)));
+              return noBlue;
+          }
+
+          return mRgba;
     	  
           
     	  
