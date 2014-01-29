@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <wirish/wirish.h>
 
+#include "libraries/Servo/Servo.h"
+
 /* features 
  [ ] dagu motor controller
  [X] cytron motor controller
  [X] encoder
  [X] gyro
- [ ] servo
+ [X] servo
  [X] ultrasonic
  [X] IR
  [X] analog read
@@ -14,6 +16,8 @@
  [X] digital read
  [X] digital write
  */
+ 
+#define NUM_PINS 38
 
 #define LED_PIN BOARD_LED_PIN
 
@@ -40,6 +44,14 @@ HardwareSPI spi2(2);
 uint8 serialRead() {
     while (!SerialUSB.available());
     return SerialUSB.read();
+}
+
+// MSB first
+uint16 serialRead16Bit() {
+    uint16 out = serialRead();
+    out <<= 8;
+    out += serialRead();
+    return out;
 }
 
 
@@ -92,6 +104,7 @@ public:
     count = 0;
 
     ultrasonicCount = 0;
+    encoderCount = 0;
   }
 
   void sample() {
@@ -145,6 +158,7 @@ public:
 #define CYTRON_CODE 'C'
 #define ENCODER_CODE 'N'
 #define GYROSCOPE_CODE 'Y'
+#define SERVO_CODE 'V'
 #define ULTRASONIC_CODE 'U'
 
 
@@ -351,6 +365,36 @@ public:
 
 
 //-----------------------------------
+// Servo
+//-----------------------------------
+
+class ServoMotor : public SettableDevice {
+private:    
+  uint8 pin;
+  Servo servo;
+  
+public:
+  ServoMotor() {
+    pin = serialRead();
+    uint16 minPulseWidth = serialRead16Bit();
+    uint16 maxPulseWidth = serialRead16Bit();
+    uint16 minAngle = serialRead16Bit();
+    uint16 maxAngle = serialRead16Bit();
+    servo.attach(pin, minPulseWidth, maxPulseWidth, minAngle, maxAngle);
+  }
+  
+  ~ServoMotor() {
+    servo.detach();
+  }
+
+  void set() {
+    uint16 pulseWidth = serialRead16Bit();
+    //SerialUSB.print(pulseWidth);
+    servo.writeMicroseconds(pulseWidth);
+  }
+};
+
+//-----------------------------------
 // Ultrasonic range finder
 //-----------------------------------
 
@@ -381,15 +425,16 @@ Ultrasonic *ultrasonics[8];
 
 class Ultrasonic : public SampleableDevice {
 private:
+  
   uint8 triggerPin;
   uint8 echoPin;
 
-  uint32 startTime;
-  bool isEchoLow;
-  bool receivedEcho;
-
-  uint16 val;
-
+  volatile uint32 startTime;
+  volatile bool isEchoLow;
+  volatile bool receivedEcho;
+  
+  volatile uint16 val;
+  
 public:
   Ultrasonic() {
     triggerPin = serialRead();
@@ -402,9 +447,13 @@ public:
 
     ultrasonics[ultrasonicCount] = this;
     attachInterrupt(echoPin, *(ultrasonicISRList[ultrasonicCount]), CHANGE);
-    ultrasonicCount++;
     
     val = 0;
+    ultrasonicCount++;
+  }
+  
+  ~Ultrasonic() {
+    detachInterrupt(echoPin);
   }
 
   void localISR() {
@@ -485,7 +534,7 @@ private:
   uint8 pinA;
   uint8 pinB;
 
-  uint16 ticks;
+  volatile uint16 ticks;
 
 public:
   Encoder() {
@@ -500,6 +549,10 @@ public:
     encoderCount++;
     
     ticks = 0;
+  }
+  
+  ~Encoder() {
+    detachInterrupt(pinA);
   }
 
   void localISR() {
@@ -534,6 +587,7 @@ void encoderISR(uint8 index) {
 // LOGIC
 //===================================
 
+void resetAllPins();
 void firmwareInit();
 void get();
 void set();
@@ -551,6 +605,7 @@ void loop() {
   char header = serialRead();
   switch (header) {
   case INIT:
+    resetAllPins();
     firmwareInit();
     break;
   case GET:
@@ -567,6 +622,12 @@ void loop() {
   }
 }
 
+void resetAllPins() {
+  for (int i = 0; i < NUM_PINS; i++) {
+    detachInterrupt(i);
+    pinMode(i, INPUT);
+  }
+}
 
 void firmwareInit() {
   initStatus = false;
@@ -596,6 +657,9 @@ void firmwareInit() {
       break;
     case GYROSCOPE_CODE:
       deviceList.add(new Gyroscope());
+      break;
+    case SERVO_CODE:
+      deviceList.add(new ServoMotor());
       break;
     case ULTRASONIC_CODE:
       deviceList.add(new Ultrasonic());
@@ -643,11 +707,11 @@ __attribute__((constructor)) void premain() {
 }
 
 int main(void) {
-    setup();
+  setup();
 
-    while (true) {
-        loop();
-    }
+  while (true) {
+    loop();
+  }
 
-    return 0;
+  return 0;
 }

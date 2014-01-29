@@ -1,1 +1,6 @@
+<<<<<<< HEAD
 .metadata*
+=======
+*.class
+.metadata/
+>>>>>>> d773787c66011a8b6c0e1941316a2a18a6d89e6d
