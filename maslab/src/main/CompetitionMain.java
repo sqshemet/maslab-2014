@@ -24,13 +24,14 @@ public class CompetitionMain {
    //  Load the native library.    
 	    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	    vision.BlobDetect.viewStream(); //Comment this out if you don't want the stream
-	    Mat frame = vision.BlobDetect.getFrame();
-	    //Mat frame = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
-	    Map.Entry<Point, Float> ball = vision.BlobDetect.getClosestBall(frame);
-	    double distance = vision.BlobDetect.distanceToBall(ball.getValue());
-	    Point center = ball.getKey();
-	    int orientation = vision.BlobDetect.orientation(center);
-	
+	    while(botclient.gameStarted()){
+	    	Mat frame = vision.BlobDetect.getFrame();
+	    	//Mat frame = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
+	    	Map.Entry<Point, Float> ball = vision.BlobDetect.getClosestBall(frame);
+	    	double distance = vision.BlobDetect.distanceToBall(ball.getValue());
+	    	Point center = ball.getKey();
+	    	int orientation = vision.BlobDetect.orientation(center);
+	    }
 		botclient.close();
 	}
 }
