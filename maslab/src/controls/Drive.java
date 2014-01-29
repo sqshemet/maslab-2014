@@ -49,6 +49,7 @@ public class Drive{
 				leftMotor.setSpeed(BIAS*remaining + power);
 				rightMotor.setSpeed(BIAS*remaining - power);
 			} 
+			comm.transmit();
 			totalDist += (rightDist+leftDist)/2.0;
 			comm.updateSensorData();
 		}
