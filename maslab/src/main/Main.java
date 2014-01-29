@@ -57,9 +57,11 @@ public class Main {
 
 		// Send information about connected devices to the Maple
 		comm.initialize();
+		System.out.println("comm initialized");
 		
 		//Initialize motor control class
 		Drive driver = new Drive(comm, motor1, motor2, enc1, enc2);
+		System.out.println("driver initialized");
 		driver.driveForward(2.0); //drive forward 2 feet
 
 		while (true) {
