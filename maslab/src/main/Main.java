@@ -34,14 +34,13 @@ public class Main {
 		 * Devices are generally either Sensors or Actuators. For example, a
 		 * motor controller is an actuator, and an encoder is a sensor.
 		 */
-		Cytron motor1 = new Cytron(6, 7); //left motor  (blue dir, yellow pwm)
-		Cytron motor2 = new Cytron(4, 5); //right motor (blue dir, yellow pwm)
-		Cytron balleater = new Cytron(9, 8); //balleater motor (green dir, blue pwm)
-//		Ultrasonic ultra1 = new Ultrasonic(13, 12);
+		Cytron motor1 = new Cytron(3, 2); //left motor  (blue dir, yellow pwm)
+		Cytron motor2 = new Cytron(1, 0); //right motor (blue dir, yellow pwm)
+		Ultrasonic ultra = new Ultrasonic(6, 7);
 //		Ultrasonic ultra2 = new Ultrasonic(36, 34);
 //		Gyroscope gyro = new Gyroscope(1, 9);
-		Encoder enc1 = new Encoder(23, 24); //left encoder  (pinA, pinB)
-		Encoder enc2 = new Encoder(25, 26); //right encoder (pinA, pinB)
+		Encoder enc1 = new Encoder(27, 28); //left encoder  (pinA, pinB)
+		Encoder enc2 = new Encoder(31, 32); //right encoder (pinA, pinB)
 
 		/*
 		 * Build up a list of devices that will be sent to the Maple for the
