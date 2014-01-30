@@ -36,6 +36,7 @@ public class Main {
 		 */
 		Cytron motor1 = new Cytron(6, 7); //left motor  (blue dir, yellow pwm)
 		Cytron motor2 = new Cytron(4, 5); //right motor (blue dir, yellow pwm)
+		Cytron balleater = new Cytron(9, 8); //balleater motor (green dir, blue pwm)
 //		Ultrasonic ultra1 = new Ultrasonic(13, 12);
 //		Ultrasonic ultra2 = new Ultrasonic(36, 34);
 //		Gyroscope gyro = new Gyroscope(1, 9);

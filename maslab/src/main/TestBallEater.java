@@ -2,15 +2,13 @@ package main;
 
 import comm.MapleComm;
 import comm.MapleIO;
-import controls.Drive;
 
-import devices.actuators.Cytron;
-import devices.sensors.Encoder;
+import devices.actuators.DigitalOutput;
 
 public class TestBallEater {
 	
 	public static void main(String[] args) {
-		new Main();
+		new TestBallEater();
 		System.exit(0);
 	}
 
@@ -18,19 +16,29 @@ public class TestBallEater {
 		
 		MapleComm comm = new MapleComm(MapleIO.SerialPortType.LINUX);
 
-		Cytron balleater = new Cytron(9, 8); //balleater motor (green dir, blue pwm)
+		 DigitalOutput ballEater = new DigitalOutput(35); //ballEater gate pin (green; pin 35)
+		 DigitalOutput pullyThings = new DigitalOutput(37);
 
-		comm.registerDevice(balleater);
-
+		comm.registerDevice(ballEater);
+		comm.registerDevice(pullyThings);
 		comm.initialize();
 		System.out.println("comm initialized");
+		
+		int iters = 0;
 
-		while (true) {
-			balleater.setSpeed(2.0);
+		while (iters < 3) {
+			ballEater.setValue(true);
 			comm.transmit();
 			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) { }
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				ballEater.setValue(false);
+				comm.transmit();
+			}
+			iters++;
 		}
+		ballEater.setValue(false);
+		comm.transmit();
+		System.out.println("done, bitch.");
 	}
 }
