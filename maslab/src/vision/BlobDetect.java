@@ -64,8 +64,9 @@ import org.opencv.imgproc.Imgproc;
     	  // What do you want to see in the stream?
     	  // Initialize things yaaay!
            Mat mRgba=new Mat(); 
-           inputframe.copyTo(mRgba);  
-           List<MatOfPoint> contours = getContours(inputframe);
+           Mat noBlue = cropBlue(inputframe);
+           noBlue.copyTo(mRgba);
+           List<MatOfPoint> contours = getContours(noBlue);
            HashMap<Point, Float> objects = getBlobs(contours);
            for(int i=0; i<objects.size(); i++){
         	   if (Imgproc.contourArea(contours.get(i)) > 50){
@@ -82,9 +83,6 @@ import org.opencv.imgproc.Imgproc;
            return mRgba; 
       }
       
-      public Mat cropBelowBlue(Mat inputframe){
-    	  return null;
-      }
       public List<MatOfPoint> getContours(Mat inputframe){
     	  // Initialize things yaaay!
     	  inputframe = cropBlue(inputframe);
@@ -107,7 +105,7 @@ import org.opencv.imgproc.Imgproc;
           // Split into channels
           //Core.split(mHSV, lhsv);
           // Threshold over green and red (red wraps around)
-          Core.inRange(mHSV, new Scalar(50, 60, 40), new Scalar(90, 110, 160), green); 
+          Core.inRange(mHSV, new Scalar(55, 60, 40), new Scalar(75, 110, 160), green); 
           Core.inRange(mHSV, new Scalar(0, 140, 95), new Scalar(10, 250, 210), red);
           //Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
           // Compound thresholded image
@@ -140,8 +138,6 @@ import org.opencv.imgproc.Imgproc;
        	   //I don't understand why the * radii is a float[], but it is. All we care about
        	   // is the first element.
        	   Imgproc.minEnclosingCircle(curves.get(i), center, radius);
-       	   System.out.print(center);
-       	   System.out.println(radius[0]);
        	   objects.put(center, radius[0]);
        	   	}
           return objects;
@@ -162,6 +158,7 @@ import org.opencv.imgproc.Imgproc;
           Mat blurred = new Mat();
           Imgproc.blur(thresholded, blurred, new Size(9,9));
           //Filter small blobs
+          Mat test = new Mat();
           Imgproc.erode(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10)));       
           Imgproc.dilate(blurred, blurred, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10, 10)));
           Imgproc.findContours(blurred, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
@@ -201,7 +198,7 @@ import org.opencv.imgproc.Imgproc;
           
     	  
       }
-
+     
  }  
 
  public class BlobDetect{ 
@@ -222,7 +219,7 @@ import org.opencv.imgproc.Imgproc;
 	    frame.setVisible(true);        
 	       //-- 2. Read the video stream  
 	        Mat webcam_image=new Mat();  
-	        VideoCapture capture =new VideoCapture(1);  
+	        VideoCapture capture =new VideoCapture(2);  
 	    //frame.setSize(image.width()+40, image.height()+60);
 	    //Mat no_blue = my_processor.cropBlue(image);
 	    //my_panel.MatToBufferedImage(no_blue);

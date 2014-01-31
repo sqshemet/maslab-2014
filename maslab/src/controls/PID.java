@@ -17,7 +17,7 @@ public class PID{
 	//double distP = .8;` 
 	static final double ANGLE_P = .2;
 	static final double BIAS = .13;
-	static final double TURN_BIAS = .1;
+	static final double TURN_BIAS = .13;
 	static double P = .4;
 	static double I = 1;
 
@@ -47,7 +47,7 @@ public class PID{
 		int threshold = 12;
 		while (remaining > 1){
 			wall = frontSonar.getDistance();
-			System.out.println("wall :" + wall);
+			//System.out.println("wall :" + wall);
 			fuckYou:
 			if (wall < threshold && wall != 0){
 				System.out.println("Sonar if");
@@ -60,12 +60,6 @@ public class PID{
 					if (wall > threshold+2){
 						break fuckYou;
 					}
-				}
-				try {
-					Thread.sleep(4000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
 			double rightDist = rightEnc.getDeltaAngularDistance()*2.5;
@@ -104,28 +98,53 @@ public class PID{
 		comm.transmit();
 	}
 	
-	public void turnToPoint(double angle){
+	public void turnToPoint(double target){
 		/**
 		 * turn given angle in radians
 		 */
-		System.out.println("TurntoPoint");
-		double currentAngle = 0;
-		angle = angle-Math.PI;
-		double diff = angle-currentAngle;
-		double totalError = diff;
-		while (Math.abs(diff)>.1){
-			
-			if (Math.abs(diff) > .5){
-				leftMotor.setSpeed(-1*Math.signum(diff)*TURN_BIAS);
-				rightMotor.setSpeed(Math.signum(diff)*TURN_BIAS);
-			} else {
-				leftMotor.setSpeed(-1*diff*TURN_BIAS);
-				rightMotor.setSpeed(diff*TURN_BIAS);
-			} 
+		comm.updateSensorData();
+		double wall;
+		double threshold = 12;
+		double radius = 3.7;  //in inches
+		double current = 0.0; //in radians
+		double remaining = (target-current)*radius; //in inches
+		double totalError = 0.0;
+		int dir = (int) Math.signum(remaining);
+		while (Math.abs(remaining) > .09) {
+			wall = frontSonar.getDistance();
+			//System.out.println("wall :" + wall);
+			fuckYou:
+			if (wall < threshold && wall != 0){
+				System.out.println("Sonar if");
+				leftMotor.setSpeed(0);
+				rightMotor.setSpeed(0);
+				comm.transmit();
+				for (int i=3; i>0; i--){
+					comm.updateSensorData();
+					wall = frontSonar.getDistance();
+					if (wall > threshold+2){
+						break fuckYou;
+					}
+				}
+			}
+			double rightDist = -rightEnc.getDeltaAngularDistance()*2.5;
+			double leftDist = -leftEnc.getDeltaAngularDistance()*2.5;
+			double angleDiff = (rightDist - leftDist);
+			double power = .3*(P*angleDiff + I*totalError)*dir;
+			leftMotor.setSpeed((TURN_BIAS + power)*dir);
+			rightMotor.setSpeed((TURN_BIAS-power)*dir);
+			comm.transmit();
 			comm.updateSensorData();
-			//currentAngle += gyro.getDeltaAngle();
-			diff = angle-currentAngle;
+			current += (rightDist+leftDist)/8.0;
+			remaining = (target-current)*radius;
+			dir = (int) Math.signum(remaining);
+			System.out.println("Current: " + current);
+			System.out.println("Remaining:" + remaining);
+			totalError += angleDiff;
 		}
+		leftMotor.setSpeed(0);
+		rightMotor.setSpeed(0);
+		comm.transmit();
 	}
 
 	public void driveToward(double distance, int orientation) {

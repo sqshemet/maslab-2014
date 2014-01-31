@@ -67,19 +67,22 @@ public class Main {
 		//Initialize motor control class
 		PID driver = new PID(comm, motor1, motor2, enc1, enc2, ultra);
 		System.out.println("driver initialized");
-		driver.driveForward(36.0); //drive forward 2 feet
+		// driver.driveForward(18.0); //drive forward 2 feet
+		//driver.turnToPoint(-Math.PI/2.0);
+		//driver.driveToward(24, -2);
 		motor1.setSpeed(0);
 		motor2.setSpeed(0);
 		comm.transmit();
 		System.out.println("lolol main bitchez");
 		
-		/*BlobDetect ballHandler = new BlobDetect();
-		BallFinder finder = new BallFinder();
+	//	BlobDetect ballHandler = new BlobDetect();
+		//BallFinder finder = new BallFinder();
 		//Begins looking for balls, updating global variable ball with ball
-		finder.start();
-		Map.Entry<Point, Float> closestBall = finder.ball;
+		//finder.start();
+		//Map.Entry<Point, Float> closestBall = finder.ball;
 		//System.out.println(closestBall); 
-		*/
+		Map.Entry<Point, Float> closestBall = null;
+			
 		while (true) {
 			
 			// Request sensor data from the Maple and update sensor objects accordingly
@@ -106,16 +109,22 @@ public class Main {
 				double distance = ballHandler.distanceToBall(closestBall);
 				int orientation  = ballHandler.orientation2(closestBall);
 				//This is stupid as shit and will lead to a drunk robot.
-				driver.driveToward(distance, orientation);
-			}
-			else if (closestBall == null){
+				System.out.println("Distance: " + distance);
+				System.out.println("Orientation: " + orientation);
+				//driver.driveToward(distance, orientation);
+			}  */
+			if (closestBall == null){
 				Random rand = new Random();
-				int randomInt = rand.nextInt((3 - -3) + 1) + 3;
+				int randomInt = rand.nextInt(3);
+				int sign = rand.nextInt(2);
+				if (sign == 0){
+					randomInt *= -1;
+				}
 				//Randomly drive without hitting walls
 				double randomAng = randomInt + rand.nextFloat();
 				driver.turnToPoint(randomAng);
-				driver.driveForward(1.0);
-			}*/
+				driver.driveForward(36.0);
+			}
 		}
 	}
 }
