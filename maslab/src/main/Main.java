@@ -1,6 +1,6 @@
 package main;
 
-import comm.MapleComm;
+import src.comm.MapleComm;
 import comm.MapleIO;
 
 import devices.actuators.Cytron;
