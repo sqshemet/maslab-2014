@@ -29,11 +29,11 @@ public class TestSonar {
 
 		while (true) {
 			comm.updateSensorData();
-			//System.out.println(hedgehog.getDistance());
-			System.out.println("left: " + enc1.getDeltaAngularDistance());
-			System.out.println("right: " + enc2.getDeltaAngularDistance());
+			System.out.println(hedgehog.getDistance());
+			//System.out.println("left: " + enc1.getDeltaAngularDistance());
+			//System.out.println("right: " + enc2.getDeltaAngularDistance());
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {}
 		}
 	}
