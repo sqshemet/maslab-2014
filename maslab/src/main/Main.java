@@ -67,14 +67,19 @@ public class Main {
 		//Initialize motor control class
 		PID driver = new PID(comm, motor1, motor2, enc1, enc2, ultra);
 		System.out.println("driver initialized");
-		driver.driveForward(2.0); //drive forward 2 feet
+		driver.driveForward(36.0); //drive forward 2 feet
+		motor1.setSpeed(0);
+		motor2.setSpeed(0);
+		comm.transmit();
+		System.out.println("lolol main bitchez");
 		
-		BlobDetect ballHandler = new BlobDetect();
+		/*BlobDetect ballHandler = new BlobDetect();
 		BallFinder finder = new BallFinder();
 		//Begins looking for balls, updating global variable ball with ball
 		finder.start();
 		Map.Entry<Point, Float> closestBall = finder.ball;
-		
+		//System.out.println(closestBall); 
+		*/
 		while (true) {
 			
 			// Request sensor data from the Maple and update sensor objects accordingly
@@ -92,11 +97,11 @@ public class Main {
 			// Request that the Maple write updated values to the actuators
 			//comm.transmit();
 			
-			// Just for console-reading purposes; don't worry about timing
+			// Just for console-reading purposes; don't worry abtout timing
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) { }
-			if (closestBall != null){
+			/*if (closestBall != null){
 				//Drive toward closest ball
 				double distance = ballHandler.distanceToBall(closestBall);
 				int orientation  = ballHandler.orientation2(closestBall);
@@ -110,7 +115,7 @@ public class Main {
 				double randomAng = randomInt + rand.nextFloat();
 				driver.turnToPoint(randomAng);
 				driver.driveForward(1.0);
-			}
+			}*/
 		}
 	}
 }
