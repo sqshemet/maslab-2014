@@ -6,7 +6,7 @@ import devices.actuators.Cytron;
 import devices.sensors.Encoder;
 import devices.sensors.Gyroscope;
 
-public class Drive{
+public class PID{
 	MapleComm comm;
 	Cytron leftMotor;
 	Cytron rightMotor;
@@ -18,7 +18,7 @@ public class Drive{
 	static final double BIAS = .1;
 	static final double TURN_BIAS = .1;
 
-	public Drive(MapleComm mComm, Cytron leftM, Cytron rightM, 
+	public PID(MapleComm mComm, Cytron leftM, Cytron rightM, 
 			Encoder leftE, Encoder rightE /*Gyroscope scope*/){
 		comm = mComm;
 		leftMotor = leftM;

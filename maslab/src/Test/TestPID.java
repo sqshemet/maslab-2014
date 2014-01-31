@@ -5,27 +5,28 @@ import comm.MapleComm;
 import devices.actuators.Cytron;
 import devices.sensors.Encoder;
 import devices.sensors.Gyroscope;
+import devices.sensors.Ultrasonic;
 
-public class TestDrive{
+public class TestPID{
 	MapleComm comm;
 	Cytron leftMotor;
 	Cytron rightMotor;
 	Encoder leftEnc;
 	Encoder rightEnc;
-	//Gyroscope gyro;
+	Ultrasonic sonic;
 	//double distP = .8;
-	static final double ANGLE_P = .3;
-	static final double BIAS = .1;
-	static final double TURN_BIAS = .1;
+	static final double ANGLE_P = .4;
+	static final double BIAS = .2;
+	static final double TURN_BIAS = .2;
 
-	public TestDrive(MapleComm mComm, Cytron leftM, Cytron rightM, 
-			Encoder leftE, Encoder rightE /*Gyroscope scope*/){
+	public TestPID(MapleComm mComm, Cytron leftM, Cytron rightM, 
+			Encoder leftE, Encoder rightE, Ultrasonic sonic){
 		comm = mComm;
 		leftMotor = leftM;
 		rightMotor = rightM;
 		leftEnc = leftE;
 		rightEnc = rightE;
-		//gyro = scope;
+		this.sonic = sonic;
 	}
 
 	public void driveForward(Double distance){

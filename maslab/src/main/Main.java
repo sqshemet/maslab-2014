@@ -9,7 +9,7 @@ import devices.sensors.Gyroscope;
 import devices.sensors.Ultrasonic;
 import org.opencv.core.*;
 
-import controls.Drive;
+import controls.PID;
 
 public class Main {
 
@@ -60,7 +60,7 @@ public class Main {
 		System.out.println("comm initialized");
 		
 		//Initialize motor control class
-		Drive driver = new Drive(comm, motor1, motor2, enc1, enc2);
+		PID driver = new PID(comm, motor1, motor2, enc1, enc2);
 		System.out.println("driver initialized");
 		driver.driveForward(2.0); //drive forward 2 feet
 
