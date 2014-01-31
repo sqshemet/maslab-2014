@@ -1,5 +1,4 @@
 package controls;
-
 import comm.MapleComm;
 
 import devices.actuators.Cytron;
@@ -45,14 +44,23 @@ public class PID{
 		double travelled = 0.0;
 		double remaining = distance;
 		double totalError = 0.0;
+		int threshold = 12;
 		while (remaining > 1){
 			wall = frontSonar.getDistance();
 			System.out.println("wall :" + wall);
-			if (wall < 12 && wall != 0){
+			fuckYou:
+			if (wall < threshold && wall != 0){
 				System.out.println("Sonar if");
 				leftMotor.setSpeed(0);
 				rightMotor.setSpeed(0);
 				comm.transmit();
+				for (int i=3; i>0; i--){
+					comm.updateSensorData();
+					wall = frontSonar.getDistance();
+					if (wall > threshold+2){
+						break fuckYou;
+					}
+				}
 				try {
 					Thread.sleep(4000);
 				} catch (InterruptedException e) {
