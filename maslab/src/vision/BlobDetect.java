@@ -108,11 +108,11 @@ import org.opencv.imgproc.Imgproc;
           //Core.split(mHSV, lhsv);
           // Threshold over green and red (red wraps around)
           Core.inRange(mHSV, new Scalar(50, 60, 40), new Scalar(90, 110, 160), green); 
-          Core.inRange(mHSV, new Scalar(0, 140, 95), new Scalar(10, 250, 210), thresholded);
+          Core.inRange(mHSV, new Scalar(0, 140, 95), new Scalar(10, 250, 210), red);
           //Core.inRange(mHSV, new Scalar(171, 50, 50), new Scalar(180, 255, 255), red1);
           // Compound thresholded image
          // Core.bitwise_or(red, red1, thresholded);
-          //Core.bitwise_or(red, green, thresholded);
+          Core.bitwise_or(red, green, thresholded);
           //Blur to reduce noise
           Mat blurred = new Mat();
           Imgproc.blur(thresholded, blurred, new Size(9,9));
@@ -204,7 +204,12 @@ import org.opencv.imgproc.Imgproc;
 
  }  
 
- public class BlobDetect { 
+ public class BlobDetect{ 
+
+	 public BlobDetect(){
+		 System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+	 }
+	 
 	  public static void viewStream(){
 		// Mat image = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
 		String window_name = "Capture - Blob detection";  
@@ -252,9 +257,8 @@ import org.opencv.imgproc.Imgproc;
     	  Mat frame = getFrame();
     	  //Mat frame = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
     	  Map.Entry<Point, Float> ball = getClosestBall(frame);
-    	  double distance = distanceToBall(ball.getValue());
-    	  Point center = ball.getKey();
-    	  int orientation = orientation(center);
+    	  double distance = distanceToBall(ball);
+    	  int orientation = orientation(ball);
     
       } 
       
@@ -290,18 +294,27 @@ import org.opencv.imgproc.Imgproc;
     	  }
     	  return closeCircle;  
       }
-
-      public static double distanceToBall(float radius){
+      
+      public static Point getCenter(Map.Entry<Point, Float> ball){
+    	  return ball.getKey();
+      }
+      public static float getRadius(Map.Entry<Point, Float> ball){
+    	  return ball.getValue();
+      }
+      
+      public static double distanceToBall(Map.Entry<Point, Float> ball){
     	  //Takes radius in px, returns distance in inches
+    	  float radius = getRadius(ball);
     	  float focalLength = 350; //This is approximate. Range I got from calculations was like 310-390
     	  double ballRadius = .875;
     	  return ballRadius*focalLength/radius;
     	  
       }
       
-      public static int orientation(Point center){
+      public static int orientation(Map.Entry<Point, Float> ball){
     	  //Takes in center of ball, returns 0 if approximately the center of view
     	  // -1 if left, 1 if right, 2 if error.
+    	  Point center = getCenter(ball);
     	  if (center.x > 240 && center.x < 400){
     		  return 0;
     	  }
@@ -313,9 +326,10 @@ import org.opencv.imgproc.Imgproc;
     	  }
     	  return -2;
       }
-      public static int orientation2(Point center){
+      public int orientation2(Map.Entry<Point, Float> ball){
     	  //Takes in center of ball, returns 0 if approximately the center of view
     	  // -3 through 3, error is -4
+    	  Point center = getCenter(ball);
     	  if (center.x > 180 && center.x < 300){
     		  return 0;
     	  }
