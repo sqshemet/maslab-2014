@@ -249,8 +249,8 @@ import org.opencv.imgproc.Imgproc;
        // Load the native library.    
     	  System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     	  viewStream(); //Comment this out if you don't want the stream
-    	  //Mat frame = getFrame();
-    	  Mat frame = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
+    	  Mat frame = getFrame();
+    	  //Mat frame = Highgui.imread("/home/sqshemet/blue_small.jpg", Highgui.CV_LOAD_IMAGE_COLOR);
     	  Map.Entry<Point, Float> ball = getClosestBall(frame);
     	  double distance = distanceToBall(ball.getValue());
     	  Point center = ball.getKey();
@@ -312,5 +312,31 @@ import org.opencv.imgproc.Imgproc;
     		  return 1;
     	  }
     	  return -2;
+      }
+      public static int orientation2(Point center){
+    	  //Takes in center of ball, returns 0 if approximately the center of view
+    	  // -3 through 3, error is -4
+    	  if (center.x > 180 && center.x < 300){
+    		  return 0;
+    	  }
+    	  else if (center.x <= 180 && center.x > 120){
+    		  return -1;
+    	  }
+    	  else if (center.x <= 120 && center.x > 60){
+    		  return -2;
+    	  }
+    	  else if (center.x <= 60){
+    		  return -3;
+    	  }
+    	  else if (center.x >= 300 && center.x < 360){
+    		  return 1;
+    	  }
+    	  else if (center.x >= 360 && center.x < 420){
+    		  return 2;
+    	  }
+    	  else if (center.x >= 420){
+    		  return 3;
+    	  }
+    	  return -4;
       }
  }  
