@@ -15,15 +15,15 @@ public class PID{
 	Encoder rightEnc;
 	Ultrasonic frontSonar;
 	//Gyroscope gyro;
-	//double distP = .8;
-	static final double ANGLE_P = .3;
-	static final double BIAS = .1;
+	//double distP = .8;` 
+	static final double ANGLE_P = .2;
+	static final double BIAS = .13;
 	static final double TURN_BIAS = .1;
-	static double P = 2;
-	static double I = 4;
+	static double P = .4;
+	static double I = 1;
 
 	public PID(MapleComm mComm, Cytron leftM, Cytron rightM, 
-			Encoder leftE, Encoder rightE, Ultrasonic ultra /*Gyroscope scope*/){
+			Encoder leftE, Encoder rightE, Ultrasonic ultra /*Gyrotscope scope*/){
 		comm = mComm;
 		leftMotor = leftM;
 		rightMotor = rightM;
@@ -40,22 +40,36 @@ public class PID{
 		//80ish, 100ish, 150ish
 		//60ish, 70ish, 50ish
 		//it is a map to the treasure
+		double wall;
+		comm.updateSensorData();
 		double travelled = 0.0;
-		double remaining = distance - travelled;
-		double totalError = remaining;
-		double wall = frontSonar.getDistance();
-		if (wall < remaining){
-			driveForward(wall-.5);
-			turnToPoint(.785);
-		}
-		while (remaining > 0.83){
-			double rightDist = rightEnc.getDeltaAngularDistance()*.323;
-			double leftDist = leftEnc.getDeltaAngularDistance()*.323;
-			double angleDiff = (rightDist - leftDist);
-			double power = P*remaining + I*totalError;
-			leftMotor.setSpeed(BIAS + power);
+		double remaining = distance;
+		double totalError = 0.0;
+		while (remaining > 1){
+			wall = frontSonar.getDistance();
+			System.out.println("wall :" + wall);
+			if (wall < 12 && wall != 0){
+				System.out.println("Sonar if");
+				leftMotor.setSpeed(0);
+				rightMotor.setSpeed(0);
+				comm.transmit();
+				try {
+					Thread.sleep(4000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			double rightDist = rightEnc.getDeltaAngularDistance()*2.5;
+			double leftDist = leftEnc.getDeltaAngularDistance()*2.5;
+			double angleDiff = (rightDist + leftDist);
+			double power = .7*(P*angleDiff + I*totalError);
+			System.out.println("Power:");
+			System.out.println(power);
+			System.out.println("leftDist :" + leftDist);
+			System.out.println("rightDist :" + rightDist);
+			leftMotor.setSpeed(-BIAS - power);
 			rightMotor.setSpeed(BIAS-power);
-			//double power = ANGLE_P*angleDiff;
 			/*if (remaining > 1.0){
 				leftMotor.setSpeed(BIAS + power);
 				rightMotor.setSpeed(BIAS - power);
@@ -64,17 +78,29 @@ public class PID{
 				rightMotor.setSpeed(BIAS*remaining - power);
 			} */
 			comm.transmit();
-			travelled += (rightDist+leftDist)/2.0;
-			remaining = distance - travelled;
-			totalError += remaining;
 			comm.updateSensorData();
+			travelled = (rightDist-leftDist)/2.0;
+			remaining -= travelled;
+			System.out.println("Travelled: " + travelled);
+			System.out.println("Remaining:" + remaining);
+			totalError += angleDiff;
+			/*try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
 		}
+		leftMotor.setSpeed(0);
+		rightMotor.setSpeed(0);
+		comm.transmit();
 	}
 	
 	public void turnToPoint(double angle){
 		/**
 		 * turn given angle in radians
 		 */
+		System.out.println("TurntoPoint");
 		double currentAngle = 0;
 		angle = angle-Math.PI;
 		double diff = angle-currentAngle;
