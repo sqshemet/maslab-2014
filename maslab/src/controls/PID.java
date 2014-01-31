@@ -40,12 +40,14 @@ public class PID{
 		//60ish, 70ish, 50ish
 		//it is a map to the treasure
 		double wall;
+		boolean kindaStuck = false;
+		long startTime = System.nanoTime();
 		comm.updateSensorData();
 		double travelled = 0.0;
 		double remaining = distance;
 		double totalError = 0.0;
 		int threshold = 12;
-		while (remaining > 1){
+		while (remaining > 1 && !kindaStuck){
 			wall = frontSonar.getDistance();
 			System.out.println("wall :" + wall);
 			fuckYou:
@@ -61,43 +63,35 @@ public class PID{
 						break fuckYou;
 					}
 				}
-				try {
-					Thread.sleep(4000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				turnToPoint(Math.PI/2.0);
+				kindaStuck = true;
 			}
-			double rightDist = rightEnc.getDeltaAngularDistance()*2.5;
-			double leftDist = leftEnc.getDeltaAngularDistance()*2.5;
-			double angleDiff = (rightDist + leftDist);
-			double power = .7*(P*angleDiff + I*totalError);
-			System.out.println("Power:");
-			System.out.println(power);
-			System.out.println("leftDist :" + leftDist);
-			System.out.println("rightDist :" + rightDist);
-			leftMotor.setSpeed(-BIAS - power);
-			rightMotor.setSpeed(BIAS-power);
-			/*if (remaining > 1.0){
-				leftMotor.setSpeed(BIAS + power);
-				rightMotor.setSpeed(BIAS - power);
-			} else {
-				leftMotor.setSpeed(BIAS*remaining + power);
-				rightMotor.setSpeed(BIAS*remaining - power);
-			} */
-			comm.transmit();
-			comm.updateSensorData();
-			travelled = (rightDist-leftDist)/2.0;
-			remaining -= travelled;
-			System.out.println("Travelled: " + travelled);
-			System.out.println("Remaining:" + remaining);
-			totalError += angleDiff;
-			/*try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
+			if (!kindaStuck) {
+				double rightDist = rightEnc.getDeltaAngularDistance()*2.5;
+				double leftDist = leftEnc.getDeltaAngularDistance()*2.5;
+				double angleDiff = (rightDist + leftDist);
+				double power = .7*(P*angleDiff + I*totalError);
+				System.out.println("Power:");
+				System.out.println(power);
+				System.out.println("leftDist :" + leftDist);
+				System.out.println("rightDist :" + rightDist);
+				leftMotor.setSpeed(-BIAS - power);
+				rightMotor.setSpeed(BIAS-power);
+				/*if (remaining > 1.0){
+					leftMotor.setSpeed(BIAS + power);
+					rightMotor.setSpeed(BIAS - power);
+				} else {
+					leftMotor.setSpeed(BIAS*remaining + power);
+					rightMotor.setSpeed(BIAS*remaining - power);
+				} */
+				comm.transmit();
+				comm.updateSensorData();
+				travelled = (rightDist-leftDist)/2.0;
+				remaining -= travelled;
+				System.out.println("Travelled: " + travelled);
+				System.out.println("Remaining:" + remaining);
+				totalError += angleDiff;
+			}
 		}
 		leftMotor.setSpeed(0);
 		rightMotor.setSpeed(0);
